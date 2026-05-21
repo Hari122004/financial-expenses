@@ -31,7 +31,7 @@ if not st.session_state.logged_in:
 
     st.warning("Please Login First")
 
-    st.switch_page("app.py")
+    st.switch_page("app")
 
 # -----------------------------------
 # SESSION STATE
@@ -181,7 +181,7 @@ if st.sidebar.button("🚪 Logout"):
 
     st.session_state.logged_in = False
 
-    st.switch_page("app.py")
+    st.switch_page("app")
 
 # -----------------------------------
 # TITLE
