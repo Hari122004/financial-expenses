@@ -12,6 +12,7 @@ Build a smart financial management system to:
 ✅ Categorize spending  
 ✅ Analyze monthly budgets  
 ✅ Predict future expenses  
+hi
 
 ---
 
