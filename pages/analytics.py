@@ -1,3 +1,4 @@
+from pathlib import Path
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -19,7 +20,7 @@ st.set_page_config(
 # -----------------------------------
 if "logged_in" not in st.session_state or not st.session_state.logged_in:
     st.warning("Please Login First")
-    st.switch_page("app.py")
+    st.switch_page(Path("app.py"))
 
 # -----------------------------------
 # SESSION STATE
@@ -64,7 +65,7 @@ st.sidebar.page_link(
 
 if st.sidebar.button("🚪 Logout"):
     st.session_state.logged_in = False
-    st.switch_page("app.py")
+    st.switch_page(Path("app.py"))
 
 # -----------------------------------
 # PAGE CONTENT
