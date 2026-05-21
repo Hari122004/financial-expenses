@@ -1,4 +1,6 @@
 import streamlit as st
+import pandas as pd
+import plotly.express as px
 
 # -----------------------------------
 # PAGE CONFIG
@@ -23,6 +25,26 @@ if not st.session_state.logged_in:
     st.switch_page("app.py")
 
 # -----------------------------------
+# SESSION STATE
+# -----------------------------------
+if "expenses" not in st.session_state:
+
+    st.session_state.expenses = pd.DataFrame({
+
+        "Date": [],
+
+        "Description": [],
+
+        "Category": [],
+
+        "Amount": []
+    })
+
+if "monthly_budget" not in st.session_state:
+
+    st.session_state.monthly_budget = 40000
+
+# -----------------------------------
 # USERNAME
 # -----------------------------------
 username = st.session_state.username
@@ -38,8 +60,8 @@ st.markdown("""
 
     background: linear-gradient(
         135deg,
+        #020617,
         #0f172a,
-        #111827,
         #1e293b
     );
 
@@ -51,88 +73,53 @@ st.markdown("""
 footer {visibility: hidden;}
 header {visibility: hidden;}
 
-/* SIDEBAR */
-section[data-testid="stSidebar"] {
+/* INPUT BOX */
+.stTextInput input,
+.stNumberInput input,
+.stDateInput input,
+.stSelectbox div {
 
-    background: linear-gradient(
-        180deg,
-        #020617,
-        #0f172a
-    );
-}
-
-/* SIDEBAR TEXT */
-section[data-testid="stSidebar"] * {
-
-    color: white !important;
-}
-
-/* METRIC CARD */
-[data-testid="metric-container"] {
-
-    background-color: #1e293b;
-
-    padding: 20px;
-
-    border-radius: 15px;
-
-    box-shadow: 0px 3px 10px rgba(0,0,0,0.3);
-
-    color: white;
-}
-
-/* PROFILE BUTTON */
-div[data-testid="stPopover"] button {
-
-    border-radius: 30px !important;
-
-    background-color: #111827 !important;
+    background-color: #1e293b !important;
 
     color: white !important;
 
-    font-weight: bold !important;
+    border-radius: 10px !important;
 
     border: none !important;
 }
 
+/* BUTTON */
+.stButton button {
+
+    width: 100%;
+
+    background-color: #2563eb;
+
+    color: white;
+
+    border-radius: 10px;
+
+    height: 45px;
+
+    border: none;
+
+    font-size: 16px;
+}
+
+/* BUTTON HOVER */
+.stButton button:hover {
+
+    background-color: #1d4ed8;
+
+    color: white;
+}
+
 /* TABLE */
-table {
+[data-testid="stDataFrame"] {
 
-    background-color: #1e293b !important;
+    background-color: #111827;
 
-    color: white !important;
-}
-
-/* TEXT COLOR */
-h1, h2, h3, h4, h5, h6, p, label, div {
-
-    color: white !important;
-}
-
-/* INFO BOX */
-[data-testid="stAlert"] {
-
-    background-color: #1e293b !important;
-
-    color: white !important;
-}
-
-/* METRIC VALUE */
-[data-testid="stMetricValue"] {
-
-    color: #38bdf8 !important;
-}
-
-/* METRIC LABEL */
-[data-testid="stMetricLabel"] {
-
-    color: #cbd5e1 !important;
-}
-
-/* SUBHEADER */
-.stSubheader {
-
-    color: white !important;
+    border-radius: 15px;
 }
 
 </style>
@@ -145,13 +132,8 @@ st.sidebar.title("💰 Expense Tracker")
 
 st.sidebar.success(f"Welcome {username}")
 
-st.sidebar.divider()
-
-# -----------------------------------
-# SIDEBAR MENU
-# -----------------------------------
 st.sidebar.page_link(
-    "pages/dashboard.py",
+    "pages/Dashboard.py",
     label="📊 Dashboard"
 )
 
@@ -171,120 +153,260 @@ st.sidebar.page_link(
 )
 
 # -----------------------------------
-# TOP BAR
+# LOGOUT
 # -----------------------------------
-col1, col2 = st.columns([10,2])
+if st.sidebar.button("🚪 Logout"):
 
-with col1:
+    st.session_state.logged_in = False
 
-    st.title("📊 Expense Tracker Dashboard")
-
-with col2:
-
-    with st.popover(f"👤 {username}"):
-
-        st.markdown(f"""
-        ### 👤 {username}
-
-        Welcome to Expense Tracker
-        """)
-
-        st.divider()
-
-        st.write("📊 Dashboard")
-
-        st.write("➕ Add Expense")
-
-        st.write("📈 Analytics")
-
-        st.write("🤖 Prediction")
-
-        st.divider()
-
-        # -----------------------------------
-        # PROFILE DETAILS
-        # -----------------------------------
-        st.write(f"👤 Username: {username}")
-
-        st.write("📌 Role: User")
-
-        st.write("✅ Status: Active")
-
-        st.divider()
-
-        # -----------------------------------
-        # LOGOUT BUTTON
-        # -----------------------------------
-        if st.button(
-            "🚪 Logout",
-            key="logout_btn"
-        ):
-
-            st.session_state.logged_in = False
-
-            st.session_state.page = "signin"
-
-            st.switch_page("app.py")
+    st.switch_page("app.py")
 
 # -----------------------------------
-# WELCOME MESSAGE
+# TITLE
 # -----------------------------------
-st.success(f"Welcome {username}")
+st.title("💰 Expense Tracker Dashboard")
+
+st.write(
+    "Track spending and visualize expenses instantly."
+)
 
 # -----------------------------------
-# METRICS
+# TOP SECTION
 # -----------------------------------
-col1, col2, col3 = st.columns(3)
+left, right = st.columns([2,1])
 
-with col1:
+# -----------------------------------
+# BUDGET & METRICS
+# -----------------------------------
+with left:
 
-    st.metric(
-        "💰 Total Expense",
-        "₹25,000"
+    st.subheader("Budget Overview")
+
+    monthly_budget = st.number_input(
+        "Enter Total Monthly Budget",
+        min_value=0,
+        value=st.session_state.monthly_budget,
+        key="monthly_budget"
     )
 
-with col2:
+    data = st.session_state.expenses
 
-    st.metric(
-        "📅 Monthly Budget",
-        "₹40,000"
+    total_expense = data["Amount"].sum()
+
+    remaining_balance = monthly_budget - total_expense
+    budget_usage = total_expense / monthly_budget if monthly_budget > 0 else 0
+
+    metric1, metric2, metric3 = st.columns(3)
+
+    with metric1:
+        st.metric("📆 Total Budget", f"₹{monthly_budget}")
+
+    with metric2:
+        st.metric("🧾 Total Expense", f"₹{total_expense}")
+
+    with metric3:
+        st.metric("💰 Remaining Budget", f"₹{remaining_balance}")
+
+    if data.empty:
+        st.info("No expenses recorded yet. Add your first expense to start tracking budgets.")
+    else:
+        st.write(f"**Budget usage:** {round(min(budget_usage, 1.0) * 100, 1)}%")
+        st.progress(min(budget_usage, 1.0))
+
+        if remaining_balance < 0:
+            st.error("⚠️ You are over budget. Review your recent expenses and adjust your spending.")
+        elif budget_usage >= 0.8:
+            st.warning("⚠️ Budget is running low. Try reducing non-essential spending this month.")
+        else:
+            st.success("✅ Budget is on track.")
+
+# -----------------------------------
+# ADD EXPENSE
+# -----------------------------------
+with right:
+
+    st.subheader("Add Expense")
+
+    description = st.text_input(
+        "Description",
+        key="new_description"
     )
 
-with col3:
-
-    st.metric(
-        "💵 Remaining Balance",
-        "₹15,000"
+    amount = st.number_input(
+        "Amount",
+        min_value=0.0,
+        key="new_amount"
     )
 
-# -----------------------------------
-# RECENT ACTIVITY
-# -----------------------------------
-st.subheader("📌 Recent Activity")
+    expense_date = st.date_input(
+        "Date",
+        key="new_date"
+    )
 
-st.info("No recent expenses added")
+    category = st.selectbox(
+        "Category",
+        [
+            "Food",
+            "Transport",
+            "Rent",
+            "Utilities",
+            "Health",
+            "Entertainment",
+            "Education",
+            "Business",
+            "Other"
+        ],
+        key="new_category"
+    )
+
+    if st.button(
+        "Add Expense",
+        key="add_expense_btn"
+    ):
+
+        new_expense = pd.DataFrame({
+
+            "Date": [str(expense_date)],
+
+            "Description": [description],
+
+            "Category": [category],
+
+            "Amount": [amount]
+        })
+
+        st.session_state.expenses = pd.concat(
+            [
+                st.session_state.expenses,
+                new_expense
+            ],
+            ignore_index=True
+        )
+
+        st.success(
+            "Expense Added Successfully"
+        )
+
+        st.rerun()
 
 # -----------------------------------
-# RECENT EXPENSE TABLE
+# MAIN DATA
 # -----------------------------------
-st.subheader("📋 Recent Expenses")
+data = st.session_state.expenses
 
-expense_data = {
-    "Category": [
-        "Food",
-        "Travel",
-        "Shopping"
-    ],
-    "Amount": [
-        "₹500",
-        "₹1200",
-        "₹2500"
-    ],
-    "Date": [
-        "2026-05-10",
-        "2026-05-11",
-        "2026-05-12"
+# -----------------------------------
+# EXPENSE TABLE
+# -----------------------------------
+st.subheader("📋 Expenses")
+
+if data.empty:
+    st.info("No expenses added yet.")
+else:
+    st.dataframe(
+        data,
+        use_container_width=True
+    )
+
+    delete_options = [
+        f"{idx}: {row['Date']} - {row['Description']} ({row['Category']}) ₹{row['Amount']}"
+        for idx, row in data.iterrows()
     ]
-}
 
-st.table(expense_data)
+    with st.expander("Delete Expense"):
+        selected_items = st.multiselect(
+            "Choose expense(s) to delete",
+            delete_options,
+            key="delete_expense_selection"
+        )
+
+        if st.button("Delete Selected Expense(s)", key="delete_expense_btn"):
+            if selected_items:
+                selected_indexes = [int(item.split(":")[0]) for item in selected_items]
+                st.session_state.expenses = (
+                    st.session_state.expenses
+                    .drop(index=selected_indexes)
+                    .reset_index(drop=True)
+                )
+                st.success("Selected expense(s) deleted.")
+                st.rerun()
+            else:
+                st.warning("Please select at least one expense to delete.")
+
+        if st.button("Reset All Expenses", key="reset_all_expenses_btn"):
+            st.session_state.expenses = pd.DataFrame({
+                "Date": [],
+                "Description": [],
+                "Category": [],
+                "Amount": []
+            })
+            st.success("All expenses reset. Prediction data will update automatically.")
+            st.rerun()
+
+# -----------------------------------
+# CHARTS
+# -----------------------------------
+chart1, chart2 = st.columns(2)
+
+# -----------------------------------
+# PIE CHART
+# -----------------------------------
+with chart1:
+
+    st.subheader("📊 By Category")
+
+    if not data.empty:
+
+        pie_data = data.groupby(
+            "Category"
+        )["Amount"].sum().reset_index()
+
+        fig1 = px.pie(
+            pie_data,
+            values="Amount",
+            names="Category",
+            hole=0.3
+        )
+
+        fig1.update_layout(
+
+            paper_bgcolor="#0f172a",
+
+            plot_bgcolor="#0f172a",
+
+            font_color="white"
+        )
+
+        st.plotly_chart(
+            fig1,
+            use_container_width=True
+        )
+
+# -----------------------------------
+# BAR CHART
+# -----------------------------------
+with chart2:
+
+    st.subheader("📈 Spending Over Time")
+
+    if not data.empty:
+
+        fig2 = px.bar(
+            data,
+            x="Date",
+            y="Amount",
+            color="Category"
+        )
+
+        fig2.update_layout(
+
+            paper_bgcolor="#0f172a",
+
+            plot_bgcolor="#0f172a",
+
+            font_color="white"
+        )
+
+        st.plotly_chart(
+            fig2,
+            use_container_width=True
+        )

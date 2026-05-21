@@ -7,6 +7,8 @@ from utils.auth import (
     verify_password
 )
 
+from utils.mail import send_welcome_email
+
 # -----------------------------------
 # PAGE CONFIG
 # -----------------------------------
@@ -161,7 +163,7 @@ if st.session_state.page == "signin":
                 st.session_state.username = user[1]
 
                 st.switch_page(
-                    "pages/dashboard.py"
+                    "pages/Dashboard.py"
                 )
 
             else:
@@ -246,7 +248,16 @@ if st.session_state.page == "signup":
 
                 conn.commit()
 
-                st.success("Account Created Successfully")
+                try:
+                    send_welcome_email(email, username)
+                    st.success("Account Created Successfully. A welcome email was sent.")
+                except Exception as err:
+                    st.success("Account Created Successfully")
+                    st.warning(
+                        "Account created, but email could not be sent. "
+                        "Check your SMTP settings."
+                    )
+                    st.write(f"Email error: {err}")
 
             except:
 
