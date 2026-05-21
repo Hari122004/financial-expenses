@@ -168,12 +168,6 @@ if st.session_state.page == "signin":
                 st.session_state.logged_in = True
                 st.session_state.username = user["username"]
 
-                st.write("DEBUG: root dir", os.listdir())
-                try:
-                    st.write("DEBUG: pages dir", os.listdir("pages"))
-                except Exception:
-                    st.write("DEBUG: pages directory not accessible")
-
                 st.switch_page("pages/dashboard.py")
             else:
                 st.error("Incorrect password. Please try again.")

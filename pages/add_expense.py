@@ -1,8 +1,7 @@
 import streamlit as st
-import os
 import pandas as pd
 from datetime import date
-
+from dotenv import load_dotenv
 from utils.expense_service import (
     add_expense,
     get_user_id_by_username,
@@ -24,11 +23,6 @@ st.set_page_config(
 # -----------------------------------
 if "logged_in" not in st.session_state or not st.session_state.logged_in:
     st.warning("Please Login First")
-    st.write("DEBUG: root dir", os.listdir())
-    try:
-        st.write("DEBUG: pages dir", os.listdir("pages"))
-    except Exception:
-        st.write("DEBUG: pages directory not accessible")
     st.switch_page("app.py")
 
 # -----------------------------------
@@ -89,11 +83,6 @@ st.sidebar.page_link(
 
 if st.sidebar.button("🚪 Logout"):
     st.session_state.logged_in = False
-    st.write("DEBUG: root dir", os.listdir())
-    try:
-        st.write("DEBUG: pages dir", os.listdir("pages"))
-    except Exception:
-        st.write("DEBUG: pages directory not accessible")
     st.switch_page("app.py")
 
 # -----------------------------------
