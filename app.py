@@ -1,5 +1,4 @@
 import streamlit as st
-from pathlib import Path
 from pymongo.errors import DuplicateKeyError
 import os
 from dotenv import load_dotenv
@@ -175,9 +174,7 @@ if st.session_state.page == "signin":
                 st.session_state.logged_in = True
                 st.session_state.username = user["username"]
 
-                st.switch_page(
-                    Path("pages/dashboard.py")
-                )
+                st.switch_page("pages/dashboard.py")
 
     # RADIO BUTTON
     # -----------------------------------

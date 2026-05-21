@@ -31,7 +31,7 @@ if not st.session_state.logged_in:
 
     st.warning("Please Login First")
 
-    st.switch_page(Path("app.py"))
+    st.switch_page("app.py")
 
 # -----------------------------------
 # SESSION STATE
