@@ -175,7 +175,7 @@ if st.session_state.page == "signin":
                 st.session_state.username = user["username"]
 
                 st.switch_page(
-                    "dashboard.py"
+                    "pages/dashboard.py"
                 )
 
     # RADIO BUTTON
