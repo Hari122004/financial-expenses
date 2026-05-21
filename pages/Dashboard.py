@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from datetime import date
+import os
 
 from utils.expense_service import (
     add_expense,
@@ -30,6 +31,12 @@ if "logged_in" not in st.session_state:
 if not st.session_state.logged_in:
 
     st.warning("Please Login First")
+
+    st.write("DEBUG: root dir", os.listdir())
+    try:
+        st.write("DEBUG: pages dir", os.listdir("pages"))
+    except Exception:
+        st.write("DEBUG: pages directory not accessible")
 
     st.switch_page("app.py")
 
