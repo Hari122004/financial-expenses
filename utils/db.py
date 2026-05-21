@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from pymongo import MongoClient
 from pymongo.errors import PyMongoError, ServerSelectionTimeoutError
 
+# Load environment variables explicitly
 load_dotenv()
 
 # -----------------------------------
@@ -62,3 +63,9 @@ try:
     expenses_collection.create_index([("user_id", 1), ("date", -1)])
 except PyMongoError:
     pass
+
+from utils.auth import (                                                
+
+hash_password,                                                      
+
+verify_password)
