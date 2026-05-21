@@ -155,22 +155,22 @@ st.sidebar.title("💰 Expense Tracker")
 st.sidebar.success(f"Welcome {username}")
 
 st.sidebar.page_link(
-    "pages/Dashboard.py",
+    "dashboard.py",
     label="📊 Dashboard"
 )
 
 st.sidebar.page_link(
-    "pages/add_expense.py",
+    "add_expense.py",
     label="➕ Add Expense"
 )
 
 st.sidebar.page_link(
-    "pages/analytics.py",
+    "analytics.py",
     label="📈 Analytics"
 )
 
 st.sidebar.page_link(
-    "pages/prediction.py",
+    "prediction.py",
     label="🤖 Prediction"
 )
 

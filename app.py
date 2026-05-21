@@ -175,18 +175,9 @@ if st.session_state.page == "signin":
                 st.session_state.username = user["username"]
 
                 st.switch_page(
-                    "pages/Dashboard.py"
+                    "dashboard.py"
                 )
 
-            else:
-
-                st.error("Invalid Password")
-
-        else:
-
-            st.error("User Not Found")
-
-    # -----------------------------------
     # RADIO BUTTON
     # -----------------------------------
     option = st.radio(
