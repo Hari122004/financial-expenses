@@ -8,6 +8,7 @@ from ml_model import (
     detect_patterns,
     predict_by_category
 )
+from utils.expense_service import get_user_id_by_username, get_user_expenses, delete_all_user_expenses
 
 # ============================================================
 # PAGE CONFIG
@@ -53,6 +54,8 @@ st.write(
 )
 
 if st.button("Reset All Expenses and Predictions", key="reset_expenses_btn"):
+    user_id = get_user_id_by_username(st.session_state.username)
+    delete_all_user_expenses(user_id)
     st.session_state.expenses = pd.DataFrame({
         "Date": [],
         "Description": [],
@@ -66,6 +69,14 @@ if st.button("Reset All Expenses and Predictions", key="reset_expenses_btn"):
 # CHECK DATA
 # ============================================================
 if "expenses" not in st.session_state:
+    user_id = get_user_id_by_username(st.session_state.username)
+    if user_id:
+        st.session_state.expenses = get_user_expenses(user_id)
+    else:
+        st.warning("No expense data available")
+        st.stop()
+
+if st.session_state.expenses.empty:
 
     st.warning(
         "No expense data available"

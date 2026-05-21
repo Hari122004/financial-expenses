@@ -7,4 +7,6 @@ joblib
 pyjwt
 bcrypt
 matplotlib
-bcrypt
+pymongo[srv]
+python-dotenv
+certifi

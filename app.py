@@ -1,7 +1,12 @@
 import streamlit as st
+from pymongo.errors import DuplicateKeyError
+import os
+from dotenv import load_dotenv
 
-from utils.db import conn, cursor
+# Load environment variables explicitly
+load_dotenv()
 
+from utils.db import DB_AVAILABLE, users_collection
 from utils.auth import (
     hash_password,
     verify_password
@@ -34,9 +39,11 @@ st.markdown("""
 .stApp {
     background: linear-gradient(
         135deg,
-        #6a11cb,
-        #2575fc
+        #020617,
+        #0f172a,
+        #1e293b
     );
+    color: white;
 }
 
 /* HIDE STREAMLIT */
@@ -61,13 +68,13 @@ header {visibility: hidden;}
 /* INPUT BOX */
 .stTextInput input {
 
-    background-color: white !important;
+    background-color: #1e293b !important;
 
-    color: black !important;
+    color: white !important;
 
     border-radius: 10px !important;
 
-    border: 1px solid #cccccc !important;
+    border: none !important;
 
     padding: 10px !important;
 
@@ -108,6 +115,12 @@ header {visibility: hidden;}
 # -----------------------------------
 # DYNAMIC TITLE
 # -----------------------------------
+if not DB_AVAILABLE:
+    st.error(
+        "Database is currently unavailable. You can still view the login page, "
+        "but login/signup actions may fail until the MongoDB connection is restored."
+    )
+
 if st.session_state.page == "signin":
 
     st.markdown("""
@@ -140,17 +153,16 @@ if st.session_state.page == "signin":
     # LOGIN BUTTON
     # -----------------------------------
     if st.button("Login"):
-
-        cursor.execute("""
-        SELECT * FROM users
-        WHERE email=?
-        """, (email,))
-
-        user = cursor.fetchone()
+        try:
+            user = users_collection.find_one({"email": email})
+        except Exception as err:
+            st.error("Unable to access the database right now. Please try again later.")
+            st.error(str(err))
+            user = None
 
         if user:
 
-            stored_password = user[3]
+            stored_password = user["password"]
 
             if verify_password(
                 password,
@@ -160,7 +172,7 @@ if st.session_state.page == "signin":
                 st.success("Login Successful")
 
                 st.session_state.logged_in = True
-                st.session_state.username = user[1]
+                st.session_state.username = user["username"]
 
                 st.switch_page(
                     "pages/Dashboard.py"
@@ -232,36 +244,38 @@ if st.session_state.page == "signup":
             hashed_pw = hash_password(password)
 
             try:
-
-                cursor.execute("""
-                INSERT INTO users(
-                    username,
-                    email,
-                    password
-                )
-                VALUES (?, ?, ?)
-                """, (
-                    username,
-                    email,
-                    hashed_pw
-                ))
-
-                conn.commit()
+                users_collection.insert_one({
+                    "username": username,
+                    "email": email,
+                    "password": hashed_pw
+                })
 
                 try:
                     send_welcome_email(email, username)
                     st.success("Account Created Successfully. A welcome email was sent.")
                 except Exception as err:
                     st.success("Account Created Successfully")
-                    st.warning(
-                        "Account created, but email could not be sent. "
-                        "Check your SMTP settings."
-                    )
-                    st.write(f"Email error: {err}")
+                    st.warning("⚠️ Welcome email could not be sent")
+                    st.error(f"**Error Details:**\n{str(err)}")
+                        
+                    # Show SMTP configuration status
+                    smtp_configured = all([
+                        os.getenv("SMTP_HOST"),
+                        os.getenv("SMTP_USERNAME"),
+                        os.getenv("SMTP_PASSWORD")
+                    ])
+                    st.info(f"**SMTP Configured:** {'✓ Yes' if smtp_configured else '✗ No'}")
+                    
+                    if not smtp_configured:
+                        st.info("**Setup Required:**\n"
+                               "1. Configure SMTP_HOST, SMTP_USERNAME, SMTP_PASSWORD in .env\n"
+                               "2. For Gmail: Use an App Password (myaccount.google.com/apppasswords)\n"
+                               "3. Restart the app after updating .env")
 
-            except:
-
+            except DuplicateKeyError:
                 st.error("Email already exists")
+            except Exception as err:
+                st.error(f"Error creating account: {err}")
 
     # -----------------------------------
     # RADIO BUTTON

@@ -1,6 +1,15 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+from datetime import date
+
+from utils.expense_service import (
+    add_expense,
+    get_user_id_by_username,
+    get_user_expenses,
+    delete_expense,
+    delete_all_user_expenses
+)
 
 # -----------------------------------
 # PAGE CONFIG
@@ -28,21 +37,34 @@ if not st.session_state.logged_in:
 # SESSION STATE
 # -----------------------------------
 if "expenses" not in st.session_state:
-
-    st.session_state.expenses = pd.DataFrame({
-
-        "Date": [],
-
-        "Description": [],
-
-        "Category": [],
-
-        "Amount": []
-    })
+    username = st.session_state.username
+    user_id = get_user_id_by_username(username)
+    if user_id:
+        st.session_state.expenses = get_user_expenses(user_id)
+    else:
+        st.session_state.expenses = pd.DataFrame({
+            "Date": [],
+            "Description": [],
+            "Category": [],
+            "Amount": []
+        })
 
 if "monthly_budget" not in st.session_state:
-
     st.session_state.monthly_budget = 40000
+
+if "new_description" not in st.session_state:
+    st.session_state.new_description = ""
+    st.session_state.new_amount = 0.0
+    st.session_state.new_date = date.today()
+    st.session_state.new_category = "Food"
+    st.session_state.reset_new_expense_fields = False
+
+if st.session_state.get("reset_new_expense_fields", False):
+    st.session_state.new_description = ""
+    st.session_state.new_amount = 0.0
+    st.session_state.new_date = date.today()
+    st.session_state.new_category = "Food"
+    st.session_state.reset_new_expense_fields = False
 
 # -----------------------------------
 # USERNAME
@@ -229,17 +251,20 @@ with right:
 
     description = st.text_input(
         "Description",
+        value=st.session_state.new_description,
         key="new_description"
     )
 
     amount = st.number_input(
         "Amount",
         min_value=0.0,
+        value=st.session_state.new_amount,
         key="new_amount"
     )
 
     expense_date = st.date_input(
         "Date",
+        value=st.session_state.new_date,
         key="new_date"
     )
 
@@ -256,6 +281,15 @@ with right:
             "Business",
             "Other"
         ],
+        index=["Food",
+            "Transport",
+            "Rent",
+            "Utilities",
+            "Health",
+            "Entertainment",
+            "Education",
+            "Business",
+            "Other"].index(st.session_state.new_category) if st.session_state.new_category in ["Food","Transport","Rent","Utilities","Health","Entertainment","Education","Business","Other"] else 0,
         key="new_category"
     )
 
@@ -264,30 +298,24 @@ with right:
         key="add_expense_btn"
     ):
 
-        new_expense = pd.DataFrame({
-
-            "Date": [str(expense_date)],
-
-            "Description": [description],
-
-            "Category": [category],
-
-            "Amount": [amount]
-        })
-
-        st.session_state.expenses = pd.concat(
-            [
-                st.session_state.expenses,
-                new_expense
-            ],
-            ignore_index=True
-        )
-
-        st.success(
-            "Expense Added Successfully"
-        )
-
-        st.rerun()
+        user_id = get_user_id_by_username(st.session_state.username)
+        if user_id:
+            success, message = add_expense(
+                user_id,
+                str(expense_date),
+                description,
+                category,
+                amount
+            )
+            if success:
+                st.session_state.expenses = get_user_expenses(user_id)
+                st.session_state.reset_new_expense_fields = True
+                st.success("Expense Added Successfully")
+                st.rerun()
+            else:
+                st.error(f"Error: {message}")
+        else:
+            st.error("User not found")
 
 # -----------------------------------
 # MAIN DATA
@@ -308,7 +336,7 @@ else:
     )
 
     delete_options = [
-        f"{idx}: {row['Date']} - {row['Description']} ({row['Category']}) ₹{row['Amount']}"
+        f"{row['expense_id']}: {row['Date']} - {row['Description']} ({row['Category']}) ₹{row['Amount']}"
         for idx, row in data.iterrows()
     ]
 
@@ -321,18 +349,19 @@ else:
 
         if st.button("Delete Selected Expense(s)", key="delete_expense_btn"):
             if selected_items:
-                selected_indexes = [int(item.split(":")[0]) for item in selected_items]
-                st.session_state.expenses = (
-                    st.session_state.expenses
-                    .drop(index=selected_indexes)
-                    .reset_index(drop=True)
-                )
+                user_id = get_user_id_by_username(st.session_state.username)
+                for item in selected_items:
+                    expense_id = item.split(":")[0]
+                    delete_expense(expense_id)
+                st.session_state.expenses = get_user_expenses(user_id)
                 st.success("Selected expense(s) deleted.")
                 st.rerun()
             else:
                 st.warning("Please select at least one expense to delete.")
 
         if st.button("Reset All Expenses", key="reset_all_expenses_btn"):
+            user_id = get_user_id_by_username(st.session_state.username)
+            delete_all_user_expenses(user_id)
             st.session_state.expenses = pd.DataFrame({
                 "Date": [],
                 "Description": [],

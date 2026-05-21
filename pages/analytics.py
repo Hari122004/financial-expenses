@@ -3,6 +3,7 @@ import pandas as pd
 import plotly.express as px
 
 from ml_model import detect_patterns
+from utils.expense_service import get_user_id_by_username, get_user_expenses
 
 # -----------------------------------
 # PAGE CONFIG
@@ -24,6 +25,14 @@ if "logged_in" not in st.session_state or not st.session_state.logged_in:
 # SESSION STATE
 # -----------------------------------
 if "expenses" not in st.session_state:
+    user_id = get_user_id_by_username(st.session_state.username)
+    if user_id:
+        st.session_state.expenses = get_user_expenses(user_id)
+    else:
+        st.warning("No expense data available")
+        st.stop()
+
+if st.session_state.expenses.empty:
     st.warning("No expense data available")
     st.stop()
 

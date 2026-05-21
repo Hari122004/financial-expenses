@@ -1,25 +1,64 @@
-import sqlite3
+import os
+import certifi
+
+from dotenv import load_dotenv
+from pymongo import MongoClient
+from pymongo.errors import PyMongoError, ServerSelectionTimeoutError
+
+load_dotenv()
 
 # -----------------------------------
 # DATABASE CONNECTION
 # -----------------------------------
-conn = sqlite3.connect(
-    "database/expense.db",
-    check_same_thread=False
+MONGODB_URI = os.getenv("MONGODB_URI")
+MONGODB_DB = os.getenv("MONGODB_DB", "expense_tracker")
+
+if not MONGODB_URI:
+    raise RuntimeError(
+        "MONGODB_URI environment variable is required for MongoDB Atlas connection"
+    )
+
+allow_invalid_certs = os.getenv(
+    "MONGODB_TLS_ALLOW_INVALID_CERTS",
+    "False"
+).lower() in ("true", "1", "yes", "y")
+
+client = MongoClient(
+    MONGODB_URI,
+    serverSelectionTimeoutMS=30000,
+    connectTimeoutMS=30000,
+    socketTimeoutMS=30000,
+    tls=True,
+    tlsCAFile=certifi.where(),
+    tlsAllowInvalidCertificates=allow_invalid_certs
 )
 
-cursor = conn.cursor()
+DB_AVAILABLE = True
+try:
+    client.admin.command("ping")
+except (ServerSelectionTimeoutError, PyMongoError) as exc:
+    DB_AVAILABLE = False
+    print(
+        "Warning: Could not connect to MongoDB Atlas during startup.",
+        exc
+    )
+
+if not DB_AVAILABLE:
+    print(
+        "Warning: MongoDB Atlas connection unavailable. "
+        "Login and signup will still render, but database operations may fail."
+    )
+
+db = client[MONGODB_DB]
+
+users_collection = db["users"]
+expenses_collection = db["expenses"]
 
 # -----------------------------------
-# CREATE USERS TABLE
+# INDEXES
 # -----------------------------------
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS users(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT,
-    email TEXT UNIQUE,
-    password BLOB
-)
-""")
-
-conn.commit()
+try:
+    users_collection.create_index("email", unique=True)
+    expenses_collection.create_index([("user_id", 1), ("date", -1)])
+except PyMongoError:
+    pass
