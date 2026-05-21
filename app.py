@@ -2,7 +2,7 @@ import streamlit as st
 from pymongo.errors import DuplicateKeyError
 import os
 from dotenv import load_dotenv
-
+from pathlib import Path
 # Load environment variables explicitly
 load_dotenv()
 
@@ -159,16 +159,10 @@ if st.session_state.page == "signin":
             st.error("Unable to access the database right now. Please try again later.")
             st.error(str(err))
             user = None
-
         if user:
+            stored_password = user.get("password", "")
 
-            stored_password = user["password"]
-
-            if verify_password(
-                password,
-                stored_password
-            ):
-
+            if verify_password(password, stored_password):
                 st.success("Login Successful")
 
                 st.session_state.logged_in = True
@@ -181,6 +175,11 @@ if st.session_state.page == "signin":
                     st.write("DEBUG: pages directory not accessible")
 
                 st.switch_page("pages/dashboard.py")
+            else:
+                st.error("Incorrect password. Please try again.")
+        else:
+            if email:
+                st.error("Email not found. Please check your email or sign up.")
 
     # RADIO BUTTON
     # -----------------------------------
