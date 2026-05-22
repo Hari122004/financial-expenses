@@ -91,6 +91,38 @@ st.markdown("""
     color: #FFFFFF !important;
 }
 
+/* Make radio button labels (Sign In / Sign Up) visible */
+.stApp [role="radiogroup"] span {
+    color: #FFFFFF !important;
+    font-weight: 600 !important;
+}
+
+.stApp [role="radio"] {
+    accent-color: #3b82f6 !important;
+}
+
+.stApp [role="radio"]:hover {
+    background-color: rgba(59, 130, 246, 0.2) !important;
+    border-radius: 8px !important;
+    padding: 4px 8px !important;
+}
+
+/* Button styling and hover effects */
+.stApp button {
+    background-color: #3b82f6 !important;
+    color: #FFFFFF !important;
+    font-weight: 600 !important;
+    border-radius: 8px !important;
+    padding: 8px 24px !important;
+    transition: all 0.3s ease !important;
+}
+
+.stApp button:hover {
+    background-color: #2563eb !important;
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.6) !important;
+    transform: translateY(-2px) !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
