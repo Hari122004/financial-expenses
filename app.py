@@ -92,7 +92,12 @@ st.markdown("""
 }
 
 /* Make radio button labels (Sign In / Sign Up) visible */
-.stApp [role="radiogroup"] span {
+.stApp [role="radiogroup"] span,
+.stApp [role="radio"] span,
+.stApp [role="radio"] label,
+.stApp [role="radiogroup"] label,
+.stApp .stRadio div,
+.stApp .stRadio span {
     color: #FFFFFF !important;
     font-weight: 600 !important;
 }
@@ -101,8 +106,9 @@ st.markdown("""
     accent-color: #3b82f6 !important;
 }
 
-.stApp [role="radio"]:hover {
-    background-color: rgba(59, 130, 246, 0.2) !important;
+.stApp [role="radio"]:hover,
+.stApp [role="radio"][aria-checked="false"] {
+    background-color: rgba(59, 130, 246, 0.15) !important;
     border-radius: 8px !important;
     padding: 4px 8px !important;
 }
