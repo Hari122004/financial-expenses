@@ -62,6 +62,27 @@ header { visibility: hidden; }
 </style>
 """, unsafe_allow_html=True)
 
+# Make login inputs and radio options visible with light background and dark text
+st.markdown("""
+<style>
+.stApp input[type="text"], .stApp input[type="password"], .stApp input[type="number"], .stApp textarea {
+    background-color: #f3f4f6 !important;
+    color: #0f172a !important;
+    border-radius: 10px !important;
+    padding: 8px !important;
+}
+
+/* Radio labels and option text */
+.stApp [role="radiogroup"] , .stApp .stRadio {
+    color: #F8FAFC !important;
+}
+
+/* Ensure placeholder text is visible */
+.stApp ::placeholder { color: #0f172a !important; opacity: 0.7; }
+
+</style>
+""", unsafe_allow_html=True)
+
 # -----------------------------------
 # DYNAMIC TITLE
 # -----------------------------------

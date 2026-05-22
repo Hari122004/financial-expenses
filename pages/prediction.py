@@ -47,7 +47,42 @@ h1,h2,h3,h4,h5,h6,p,label,div{
 # ============================================================
 # TITLE
 # ============================================================
-st.title("🤖 Expense Prediction")
+# NAVBAR (title left, links center, profile right)
+st.markdown("""
+<style>
+.top-nav { background: linear-gradient(90deg,#0b1220,#0f172a); padding:12px 20px; border-radius:8px; }
+.nav-title { color: #ffffff; font-size:22px; font-weight:700; }
+.nav-link { background: transparent; color: #cbd5e1; border: none; padding:6px 12px; border-radius:6px; }
+.nav-link:hover { background:#111827; color:#fff; }
+</style>
+""", unsafe_allow_html=True)
+
+nav1, nav2, nav3 = st.columns([2,6,1])
+with nav1:
+    st.markdown("<div class='nav-title'>💰 Expense Tracker</div>", unsafe_allow_html=True)
+with nav2:
+    st.markdown("")
+with nav3:
+    if "show_profile_menu" not in st.session_state:
+        st.session_state.show_profile_menu = False
+    if st.button("👤", key="nav_profile_top_pred"):
+        st.session_state.show_profile_menu = not st.session_state.show_profile_menu
+    if st.session_state.show_profile_menu:
+        menu_html = f"""
+        <div id="profile-overlay" style="position:fixed; top:70px; right:24px; background:#0b1220; color:white; padding:12px; border-radius:8px; z-index:9999; box-shadow: 0 8px 24px rgba(2,6,23,0.6); min-width:150px;">
+            <div style="font-weight:700; margin-bottom:8px;">{st.session_state.get('username','User')}</div>
+            <a href="/analytics" style="display:block; color:#fff; padding:8px 6px; text-decoration:none;">Analytics</a>
+            <a href="/dashboard" style="display:block; color:#fff; padding:8px 6px; text-decoration:none;">Dashboard</a>
+            <a href="/" style="display:block; color:#fff; padding:8px 6px; text-decoration:none;">Logout</a>
+        </div>
+        """
+        st.markdown(menu_html, unsafe_allow_html=True)
+
+# Reserve vertical space so the profile menu can open without pushing
+# the page title down (prevents layout shift when toggling menu)
+st.markdown("<div style='height:120px'></div>", unsafe_allow_html=True)
+
+st.header("🤖 Expense Prediction")
 
 st.write(
     "AI-based future expense forecasting"
