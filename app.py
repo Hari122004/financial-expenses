@@ -72,6 +72,12 @@ st.markdown("""
     padding: 8px !important;
 }
 
+/* Make all labels white and visible */
+.stApp label {
+    color: #FFFFFF !important;
+    font-weight: 600 !important;
+}
+
 /* Radio labels and option text */
 .stApp [role="radiogroup"] , .stApp .stRadio {
     color: #F8FAFC !important;
@@ -79,6 +85,11 @@ st.markdown("""
 
 /* Ensure placeholder text is visible */
 .stApp ::placeholder { color: #0f172a !important; opacity: 0.7; }
+
+/* Force all text divs and spans to be white for form labels */
+.stApp .stTextInput label, .stApp .stNumberInput label, .stApp .stRadio label {
+    color: #FFFFFF !important;
+}
 
 </style>
 """, unsafe_allow_html=True)
