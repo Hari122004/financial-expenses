@@ -34,80 +34,30 @@ if "page" not in st.session_state:
 # -----------------------------------
 st.markdown("""
 <style>
-
 /* FULL PAGE */
 .stApp {
-    background: linear-gradient(
-        135deg,
-        #020617,
-        #0f172a,
-        #1e293b
-    );
+    background: linear-gradient(135deg,#020617,#0f172a,#1e293b);
     color: white;
 }
 
-/* HIDE STREAMLIT */
-#MainMenu {visibility: hidden;}
-footer {visibility: hidden;}
-header {visibility: hidden;}
+/* HIDE STREAMLIT UI chrome */
+#MainMenu { visibility: hidden; }
+footer { visibility: hidden; }
+header { visibility: hidden; }
 
-/* TITLE */
+/* Page title styling (kept simple & robust) */
 .title {
-
     text-align: center;
-
-    font-size: 55px;
-
-    font-weight: bold;
-
-    margin-bottom: 25px;
-
+    font-size: 48px;
+    font-weight: 700;
+    margin-bottom: 20px;
     color: #FFFFFF;
 }
 
-/* INPUT BOX */
-.stTextInput input {
-
-    background-color: #1e293b !important;
-
-    color: white !important;
-
-    border-radius: 10px !important;
-
-    border: none !important;
-
-    padding: 10px !important;
-
-    font-size: 16px !important;
-}
-
-/* BUTTON */
-.stButton button {
-
-    width: 100%;
-
-    background: #6a11cb;
-
-    color: white;
-
-    border-radius: 10px;
-
-    height: 45px;
-
-    font-size: 16px;
-
-    border: none;
-
-    margin-top: 10px;
-}
-
-/* BUTTON HOVER */
-.stButton button:hover {
-
-    background: #4e0ea5;
-
-    color: white;
-}
+/* Avoid styling internal Streamlit class names like .stTextInput or .stButton
+   because they can change between Streamlit versions and break rendering
+   on deployed platforms. Let Streamlit render default inputs/buttons so
+   they remain visible across environments. */
 
 </style>
 """, unsafe_allow_html=True)

@@ -143,6 +143,16 @@ header {visibility: hidden;}
     border-radius: 15px;
 }
 
+/* FORCE TEXT/VALUE VISIBILITY: make labels and metric values white across the app
+   (using broad selectors to avoid Streamlit internal class changes hiding text) */
+.stApp * {
+    color: #FFFFFF !important;
+}
+
+.stApp .stProgress > div, .stApp .stProgress > div > div {
+    background-color: #2563eb !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -438,3 +448,16 @@ with chart2:
             fig2,
             use_container_width=True
         )
+
+# -----------------------------------
+# BOTTOM NAVIGATION BUTTONS (placed near end of page)
+# -----------------------------------
+st.markdown("<div style='height:40px'></div>", unsafe_allow_html=True)
+bottom_col_left, bottom_col_center, bottom_col_right = st.columns([3,1,3])
+with bottom_col_center:
+    if st.button("Analytics", key="bottom_analytics"):
+        st.session_state.page = "analytics"
+        st.switch_page("pages/analytics.py")
+    if st.button("Prediction", key="bottom_prediction"):
+        st.session_state.page = "prediction"
+        st.switch_page("pages/prediction.py")
