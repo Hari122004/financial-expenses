@@ -331,6 +331,32 @@ st.markdown("""
     transform: translateY(-2px) !important;
 }
 
+.google-signin-btn,
+.google-signin-btn:visited,
+.google-signin-btn:active {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 168px;
+    background-color: #3b82f6 !important;
+    color: #FFFFFF !important;
+    font-weight: 600 !important;
+    border-radius: 8px !important;
+    padding: 8px 24px !important;
+    text-decoration: none !important;
+    box-shadow: none !important;
+    transition: all 0.3s ease !important;
+    cursor: pointer !important;
+}
+
+.google-signin-btn:hover {
+    background-color: #2563eb !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.6) !important;
+    transform: translateY(-2px) !important;
+    text-decoration: none !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -418,8 +444,7 @@ if st.session_state.page == "signin":
         auth_url = build_google_authorization_url()
         st.markdown(
             f'''
-            <a href="{auth_url}" target="_self" rel="noopener noreferrer"
-               style="display:inline-block;padding:0.6rem 1.5rem;background:#3b82f6;color:#ffffff;text-decoration:none;border-radius:0.5rem;font-weight:600;box-shadow:0 2px 6px rgba(59,130,246,0.35);">
+            <a class="google-signin-btn" href="{auth_url}" target="_self" rel="noopener noreferrer">
                 Sign in with Google
             </a>
             ''',
