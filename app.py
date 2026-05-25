@@ -95,18 +95,6 @@ def build_google_authorization_url():
     return uri
 
 
-def render_google_oauth_button(label, auth_url):
-    st.markdown(
-        f'''
-        <a href="{auth_url}" target="_blank" rel="noopener noreferrer"
-           style="display:inline-block;padding:0.6rem 1.1rem;background:#3b82f6;color:#ffffff;text-decoration:none;border-radius:0.5rem;font-weight:600;">
-            {label}
-        </a>
-        ''',
-        unsafe_allow_html=True,
-    )
-
-
 def fetch_google_user_info(code):
     client = get_google_oauth_client()
     token = client.fetch_token(
@@ -400,10 +388,8 @@ if st.session_state.page == "signin":
     st.markdown("---")
     if st.button("Sign in with Google", key="google_signin"):
         if GOOGLE_OAUTH_ENABLED:
-            st.session_state.google_oauth_action = "signin"
             auth_url = build_google_authorization_url()
-            render_google_oauth_button("Continue with Google", auth_url)
-            st.info("Click Continue with Google to open the Google sign-in page in a new tab.")
+            st.link_button("Continue with Google", auth_url)
         else:
             st.error(
                 "Google OAuth is not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env."
@@ -495,13 +481,3 @@ if st.session_state.page == "signup":
         st.rerun()
 
     st.markdown("---")
-    if st.button("Sign up with Google", key="google_signup"):
-        if GOOGLE_OAUTH_ENABLED:
-            st.session_state.google_oauth_action = "signup"
-            auth_url = build_google_authorization_url()
-            render_google_oauth_button("Continue with Google", auth_url)
-            st.info("Click Continue with Google to open the Google sign-in page in a new tab.")
-        else:
-            st.error(
-                "Google OAuth is not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env."
-            )
