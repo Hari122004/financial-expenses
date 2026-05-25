@@ -24,7 +24,7 @@ def _get_config(name, default=""):
 
 GOOGLE_CLIENT_ID = _get_config("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = _get_config("GOOGLE_CLIENT_SECRET")
-GOOGLE_REDIRECT_URI = _get_config("GOOGLE_REDIRECT_URI", "http://localhost:8501/")
+GOOGLE_REDIRECT_URI = _get_config("GOOGLE_REDIRECT_URI", "https://financial-expenses.streamlit.app/")
 GOOGLE_OAUTH_ENABLED = bool(GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET)
 
 from utils.db import DB_AVAILABLE, oauth_states_collection, users_collection
