@@ -16,8 +16,19 @@ from utils.expense_service import get_user_id_by_username, get_user_expenses, de
 st.set_page_config(
     page_title="Expense Prediction",
     page_icon="🤖",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="collapsed"
 )
+
+st.markdown("""
+<style>
+[data-testid="stSidebar"] { display: none !important; }
+.css-1d391kg { display: none !important; }
+button[data-testid*="sidebar"], button[aria-label*="sidebar"], button[title*="sidebar"], button[aria-label*="toggle"], button[title*="toggle"], [data-testid="collapsedSidebar"], [data-testid="stSidebarToggle"], [data-testid="sidebarCollapse"], [data-testid*="sidebar"] { display: none !important; }
+button[style*="position: fixed"][style*="top:"] { display: none !important; }
+.reportview-container .main .block-container { margin-left: 0rem !important; padding-left: 1rem !important; }
+</style>
+""", unsafe_allow_html=True)
 
 # ============================================================
 # DARK THEME
