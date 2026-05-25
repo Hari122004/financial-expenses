@@ -11,9 +11,20 @@ from authlib.oauth2.rfc6749.errors import OAuth2Error
 # Load environment variables explicitly
 load_dotenv()
 
-GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
-GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
-GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8501/")
+
+def _get_config(name, default=""):
+    value = os.getenv(name)
+    if value:
+        return value
+
+    try:
+        return st.secrets.get(name, default)
+    except Exception:
+        return default
+
+GOOGLE_CLIENT_ID = _get_config("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = _get_config("GOOGLE_CLIENT_SECRET")
+GOOGLE_REDIRECT_URI = _get_config("GOOGLE_REDIRECT_URI", "http://localhost:8501/")
 GOOGLE_OAUTH_ENABLED = bool(GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET)
 
 from utils.db import DB_AVAILABLE, oauth_states_collection, users_collection
