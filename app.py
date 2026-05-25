@@ -444,7 +444,7 @@ if st.session_state.page == "signin":
         auth_url = build_google_authorization_url()
         st.markdown(
             f'''
-            <a class="google-signin-btn" href="{auth_url}" target="_self" rel="noopener noreferrer">
+            <a class="google-signin-btn" href="{auth_url}" target="_blank" rel="noopener noreferrer">
                 Sign in with Google
             </a>
             ''',
