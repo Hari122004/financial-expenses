@@ -106,6 +106,34 @@ def fetch_google_user_info(code):
     return response.json()
 
 
+def render_google_oauth_button(label, auth_url):
+    st.markdown(
+        f'''
+        <style>
+        .google-signin-button {{
+            display: block;
+            width: 100%;
+            text-align: center;
+            background: #3b82f6;
+            color: white !important;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            text-decoration: none;
+            border: none;
+            box-sizing: border-box;
+        }}
+        .google-signin-button:hover {{
+            background: #2563eb;
+            color: white !important;
+        }}
+        </style>
+        <a class="google-signin-button" href="{auth_url}" target="_blank" rel="noopener noreferrer">{label}</a>
+        ''',
+        unsafe_allow_html=True,
+    )
+
+
 def _get_query_param_value(query_params, key):
     value = query_params.get(key, "")
     if isinstance(value, list):
@@ -388,7 +416,15 @@ if st.session_state.page == "signin":
     st.markdown("---")
     if GOOGLE_OAUTH_ENABLED:
         auth_url = build_google_authorization_url()
-        st.link_button("Sign in with Google", auth_url)
+        st.markdown(
+            f'''
+            <a href="{auth_url}" target="_self" rel="noopener noreferrer"
+               style="display:inline-block;padding:0.6rem 1.5rem;background:#3b82f6;color:#ffffff;text-decoration:none;border-radius:0.5rem;font-weight:600;box-shadow:0 2px 6px rgba(59,130,246,0.35);">
+                Sign in with Google
+            </a>
+            ''',
+            unsafe_allow_html=True,
+        )
     else:
         st.error(
             "Google OAuth is not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env."
