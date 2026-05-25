@@ -386,14 +386,13 @@ if st.session_state.page == "signin":
         st.rerun()
 
     st.markdown("---")
-    if st.button("Sign in with Google", key="google_signin"):
-        if GOOGLE_OAUTH_ENABLED:
-            auth_url = build_google_authorization_url()
-            st.link_button("Continue with Google", auth_url)
-        else:
-            st.error(
-                "Google OAuth is not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env."
-            )
+    if GOOGLE_OAUTH_ENABLED:
+        auth_url = build_google_authorization_url()
+        st.link_button("Sign in with Google", auth_url)
+    else:
+        st.error(
+            "Google OAuth is not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env."
+        )
 
 # -----------------------------------
 # SIGN UP PAGE
