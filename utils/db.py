@@ -91,9 +91,3 @@ if DB_AVAILABLE:
         oauth_states_collection.create_index("created_at", expireAfterSeconds=300)
     except PyMongoError:
         pass
-
-from utils.auth import (                                                
-
-hash_password,                                                      
-
-verify_password)
