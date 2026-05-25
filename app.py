@@ -1,12 +1,22 @@
 import streamlit as st
 from pymongo.errors import DuplicateKeyError
 import os
+import uuid
+from datetime import datetime
 from dotenv import load_dotenv
 from pathlib import Path
+from authlib.integrations.requests_client import OAuth2Session
+from authlib.oauth2.rfc6749.errors import OAuth2Error
+
 # Load environment variables explicitly
 load_dotenv()
 
-from utils.db import DB_AVAILABLE, users_collection
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
+GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8501/")
+GOOGLE_OAUTH_ENABLED = bool(GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET)
+
+from utils.db import DB_AVAILABLE, oauth_states_collection, users_collection
 from utils.auth import (
     hash_password,
     verify_password
@@ -40,6 +50,147 @@ button[style*="position: fixed"][style*="top:"] { display: none !important; }
 # -----------------------------------
 if "page" not in st.session_state:
     st.session_state.page = "signin"
+
+
+def get_google_oauth_client():
+    return OAuth2Session(
+        client_id=GOOGLE_CLIENT_ID,
+        client_secret=GOOGLE_CLIENT_SECRET,
+        scope="openid email profile",
+        redirect_uri=GOOGLE_REDIRECT_URI,
+    )
+
+
+def build_google_authorization_url():
+    client = get_google_oauth_client()
+    oauth_state = uuid.uuid4().hex
+    uri, state = client.create_authorization_url(
+        "https://accounts.google.com/o/oauth2/v2/auth",
+        state=oauth_state,
+    )
+    st.session_state.google_oauth_state = state
+    if DB_AVAILABLE:
+        oauth_states_collection.update_one(
+            {"state": state},
+            {
+                "$set": {
+                    "state": state,
+                    "action": st.session_state.get("google_oauth_action", "signin"),
+                    "created_at": datetime.utcnow(),
+                }
+            },
+            upsert=True,
+        )
+    return uri
+
+
+def fetch_google_user_info(code):
+    client = get_google_oauth_client()
+    token = client.fetch_token(
+        "https://oauth2.googleapis.com/token",
+        code=code,
+    )
+    response = client.get("https://www.googleapis.com/oauth2/v3/userinfo")
+    response.raise_for_status()
+    return response.json()
+
+
+def _get_query_param_value(query_params, key):
+    value = query_params.get(key, "")
+    if isinstance(value, list):
+        return value[0] if value else ""
+    return value
+
+
+def handle_google_oauth_callback():
+    query_params = st.query_params
+    if not query_params:
+        return
+
+    if "error" in query_params:
+        error = _get_query_param_value(query_params, "error")
+        st.error(f"Google OAuth returned an error: {error}")
+        st.query_params.clear()
+        st.stop()
+
+    if "code" not in query_params:
+        return
+
+    if not GOOGLE_OAUTH_ENABLED:
+        st.error(
+            "Google OAuth is not configured. "
+            "Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env."
+        )
+        st.query_params.clear()
+        st.stop()
+
+    state = _get_query_param_value(query_params, "state")
+    oauth_record = None
+    if DB_AVAILABLE:
+        oauth_record = oauth_states_collection.find_one({"state": state})
+
+    if state != st.session_state.get("google_oauth_state", "") and not oauth_record:
+        st.error("Google OAuth state mismatch. Please try again.")
+        st.query_params.clear()
+        st.stop()
+
+    if DB_AVAILABLE:
+        oauth_record = oauth_states_collection.find_one_and_delete({"state": state})
+        if not oauth_record:
+            st.error("Google OAuth state mismatch. Please try again.")
+            st.query_params.clear()
+            st.stop()
+
+    if oauth_record and oauth_record.get("action"):
+        st.session_state.google_oauth_action = oauth_record["action"]
+
+    code = _get_query_param_value(query_params, "code")
+    try:
+        user_info = fetch_google_user_info(code)
+    except Exception as err:
+        st.error(f"Google OAuth failed: {err}")
+        st.query_params.clear()
+        st.stop()
+
+    email = user_info.get("email")
+    username = user_info.get("name") or email.split("@")[0]
+
+    if not email:
+        st.error("Google account did not provide an email address.")
+        st.query_params.clear()
+        st.stop()
+
+    action = st.session_state.get("google_oauth_action", "signin")
+    existing_user = users_collection.find_one({"email": email})
+
+    if action == "signup":
+        if existing_user:
+            st.warning("An account with this email already exists. Please sign in instead.")
+        else:
+            users_collection.insert_one({
+                "username": username,
+                "email": email,
+                "password": "",
+                "provider": "google"
+            })
+            st.success("Account created via Google. You can now sign in.")
+            st.session_state.page = "signin"
+    else:
+        if not existing_user:
+            st.warning("No account found for this Google email. Please sign up first.")
+        else:
+            st.success("Login Successful")
+            st.session_state.logged_in = True
+            st.session_state.username = existing_user["username"]
+            st.session_state.page = "signin"
+            st.query_params.clear()
+            st.switch_page("pages/dashboard.py")
+
+    st.query_params.clear()
+    st.stop()
+
+
+handle_google_oauth_callback()
 
 # -----------------------------------
 # CUSTOM CSS
@@ -223,6 +374,21 @@ if st.session_state.page == "signin":
 
         st.rerun()
 
+    st.markdown("---")
+    if st.button("Sign in with Google", key="google_signin"):
+        if GOOGLE_OAUTH_ENABLED:
+            st.session_state.google_oauth_action = "signin"
+            auth_url = build_google_authorization_url()
+            st.markdown(
+                f'<meta http-equiv="refresh" content="0; url={auth_url}">',
+                unsafe_allow_html=True
+            )
+            st.stop()
+        else:
+            st.error(
+                "Google OAuth is not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env."
+            )
+
 # -----------------------------------
 # SIGN UP PAGE
 # -----------------------------------
@@ -300,16 +466,25 @@ if st.session_state.page == "signup":
     # -----------------------------------
     # RADIO BUTTON
     # -----------------------------------
-    option = st.radio(
-        "Select Option",
-        ["Sign In", "Sign Up"],
-        horizontal=True,
-        index=1,
-        key="signup_radio"
-    )
+    
 
     if option == "Sign In":
 
         st.session_state.page = "signin"
 
         st.rerun()
+
+    st.markdown("---")
+    if st.button("Sign up with Google", key="google_signup"):
+        if GOOGLE_OAUTH_ENABLED:
+            st.session_state.google_oauth_action = "signup"
+            auth_url = build_google_authorization_url()
+            st.markdown(
+                f'<meta http-equiv="refresh" content="0; url={auth_url}">',
+                unsafe_allow_html=True
+            )
+            st.stop()
+        else:
+            st.error(
+                "Google OAuth is not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env."
+            )

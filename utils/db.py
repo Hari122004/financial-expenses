@@ -54,6 +54,7 @@ db = client[MONGODB_DB]
 
 users_collection = db["users"]
 expenses_collection = db["expenses"]
+oauth_states_collection = db["oauth_states"]
 
 # -----------------------------------
 # INDEXES
@@ -61,6 +62,7 @@ expenses_collection = db["expenses"]
 try:
     users_collection.create_index("email", unique=True)
     expenses_collection.create_index([("user_id", 1), ("date", -1)])
+    oauth_states_collection.create_index("created_at", expireAfterSeconds=300)
 except PyMongoError:
     pass
 
